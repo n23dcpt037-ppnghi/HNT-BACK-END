@@ -1,0 +1,37 @@
+# --- Dependencies ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Security  ---
+.env
+
+# --- IDE/Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Build ---
+dist/
+build/
+
+# --- Logs ---
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# --- Optional: Các file backup DB  ---
+# Giữ lại file script tạo bảng (database_setup.sql), nhưng bỏ qua các file data lớn
+*.sql.gz
+*.sql.zip
