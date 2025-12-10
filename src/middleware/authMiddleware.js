@@ -1,35 +1,66 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-// Middleware Xác thực người dùng (Kiểm tra token)
 const authenticateUser = (req, res, next) => {
-    // Lấy token từ header Authorization (ví dụ: "Bearer eyJ...")
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    
-    if (!token) {
-        return res.status(401).json({ message: 'Truy cập bị từ chối. Không có token.' });
-    }
-
     try {
-        // GIẢI MÃ TOKEN (sử dụng JWT_SECRET trong .env)
+        const authHeader = req.headers.authorization;
+        
+        // Log để kiểm tra 
+        console.log('--- AUTH DEBUG ---');
+        console.log('Header:', authHeader);
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Không tìm thấy token!' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        
+        //Kiểm tra xem JWT_SECRET có tồn tại không
+        if (!process.env.JWT_SECRET) {
+            console.error('❌ LỖI NGHIÊM TRỌNG: Chưa cấu hình JWT_SECRET trong file .env');
+            return res.status(500).json({ success: false, message: 'Lỗi cấu hình server.' });
+        }
+
+        // Giải mã token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // GẮN userId VÀ role VÀO REQUEST (RẤT QUAN TRỌNG CHO LOGIC GIỎ HÀNG)
+        // Gắn thông tin vào request - QUAN TRỌNG: CẢ HAI CÁCH
+        req.user = { userId: decoded.userId, role: decoded.role };
         req.userId = decoded.userId;
-        req.userRole = decoded.role;
-        next(); // Cho phép request đi tiếp
+        req.userRole = decoded.role; // <-- THÊM DÒNG NÀY
+
+        console.log('✅ Xác thực thành công cho User ID:', decoded.userId, 'Role:', decoded.role);
+        next();
+
     } catch (error) {
-        // Nếu token hết hạn hoặc không hợp lệ
-        res.status(401).json({ message: 'Token không hợp lệ.' });
+        console.error('❌ Lỗi Verify Token:', error.message);
+        return res.status(401).json({ success: false, message: 'Phiên đăng nhập hết hạn hoặc lỗi.' });
     }
 };
 
-// Middleware Phân quyền (Kiểm tra vai trò Admin)
+const authorizeAdmin = (req, res, next) => {
+    
+    const userRole = req.userRole || (req.user && req.user.role);
+    
+    console.log('🔐 Check admin role:', { userRole, reqUser: req.user });
+    
+    if (userRole === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ 
+            success: false, 
+            message: 'Truy cập bị từ chối. Yêu cầu quyền Admin.',
+            debug: { userRole, userId: req.userId }
+        });
+    }
+};
+
 const adminOnly = (req, res, next) => {
-    // Phải chạy sau authenticateUser
-    if (req.userRole !== 'admin') {
-        return res.status(403).json({ message: 'Truy cập bị từ chối. Chỉ dành cho Admin.' });
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ success: false, message: 'Truy cập bị từ chối (Admin only).' });
     }
-    next();
 };
 
-module.exports = { authenticateUser, adminOnly };
+module.exports = { authenticateUser, authorizeAdmin, adminOnly };

@@ -31,17 +31,27 @@ const getProductById = async (req, res) => {
 // [ADMIN ONLY] CREATE: Thêm sản phẩm mới
 const createProduct = async (req, res) => {
     try {
-        // Lấy dữ liệu từ body của request
         const data = req.body; 
 
-        // Kiểm tra dữ liệu bắt buộc (ví dụ: tên và giá)
+        // Xử lý ảnh: Nếu có upload file, lấy tên file gán vào image_url
+        if (req.file) {
+            data.image_url = req.file.filename; 
+        } else {
+            data.image_url = null; // Hoặc để một ảnh mặc định
+        }
+
+        // Kiểm tra dữ liệu bắt buộc
         if (!data.product_name || !data.price_vnd || !data.stock) {
-            return res.status(400).json({ message: "Thiếu thông tin bắt buộc (Tên, Giá, Tồn kho)." });
+            return res.status(400).json({ 
+                message: "Thiếu thông tin bắt buộc (Tên, Giá, Tồn kho)." 
+            });
         }
 
         const newProductId = await productModel.createProduct(data);
-        res.status(201).json({ message: "Thêm sản phẩm thành công.", product_id: newProductId });
-
+        res.status(201).json({ 
+            message: "Thêm sản phẩm thành công.", 
+            product_id: newProductId 
+        });
     } catch (error) {
         console.error("Lỗi khi tạo sản phẩm:", error);
         res.status(500).json({ message: "Lỗi Server nội bộ." });
@@ -54,7 +64,12 @@ const updateProduct = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
         
-        // Kiểm tra xem sản phẩm có tồn tại không trước khi update (tùy chọn)
+        // Xử lý ảnh: Nếu User chọn ảnh mới -> Multer sẽ tạo req.file
+        // Nếu User không chọn ảnh mới -> req.file là undefined -> Model sẽ giữ ảnh cũ
+        if (req.file) {
+            data.image_url = req.file.filename;
+        }
+        
         const existingProduct = await productModel.findById(id);
         if (!existingProduct) {
              return res.status(404).json({ message: "Không tìm thấy sản phẩm để cập nhật." });
@@ -62,10 +77,8 @@ const updateProduct = async (req, res) => {
 
         const affectedRows = await productModel.updateProduct(id, data);
         
-        if (affectedRows === 0) {
-            return res.status(400).json({ message: "Không có thay đổi nào được áp dụng." });
-        }
-
+        // Lưu ý: affectedRows có thể = 0 nếu bấm Lưu mà không sửa gì (MySQL tự tối ưu)
+        // Nên trả về thành công luôn
         res.status(200).json({ message: "Cập nhật sản phẩm thành công." });
 
     } catch (error) {

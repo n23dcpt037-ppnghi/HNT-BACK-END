@@ -1,18 +1,48 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // Import thư viện CORS
-require('dotenv').config(); 
+const cors = require('cors');
+const bcrypt = require('bcrypt');
+const path = require('path');
+
+const mysql = require('mysql2'); 
+
+const db = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',      
+    password: process.env.DB_PASSWORD || 'Phgngi431863028',  
+    database: process.env.DB_NAME || 'swimming_club_shop' 
+});
+
+const { authenticateUser } = require('./src/middleware/authMiddleware');
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'uploads/articles');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+db.connect(err => {
+    if (err) {
+        console.error('❌ Lỗi kết nối MySQL:', err);
+    } else {
+        console.log('✅ Đã kết nối MySQL thành công!');
+    }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 1. Cấu hình CORS (QUAN TRỌNG CHO FRONTEND)
 app.use(cors());
-
-// 2. Cấu hình Body Parser (Để đọc JSON từ Postman/Frontend)
 app.use(bodyParser.json());
+ 
+app.use('/sp_home', express.static(path.join(__dirname, 'sp_home')));
+app.use('/tuyenthu', express.static(path.join(__dirname, 'tuyenthu')));
+app.use('/sk', express.static(path.join(__dirname, 'sk')));
+app.use('/sp_home/images', express.static(path.join(__dirname, '../sp_home/images')));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// 3. Import các Routes
+// Import Routes 
 const authRoutes = require('./src/routes/authRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const athleteRoutes = require('./src/routes/athleteRoutes');
@@ -21,36 +51,90 @@ const orderRoutes = require('./src/routes/orderRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const articleRoutes = require('./src/routes/articleRoutes');
 
-// 4. Import Middleware xác thực (Dùng cho các route cần bảo vệ)
-const { authenticateUser } = require('./src/middleware/authMiddleware');
-
 
 // ==========================================
-// ĐỊNH NGHĨA CÁC TUYẾN ĐƯỜNG (ROUTES)
+app.post('/api/auth/reset-password', async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    console.log(`🔑 Đang đổi mật khẩu cho email: ${email}`);
+
+    if (!email || !newPassword) {
+        return res.status(400).json({ message: "Thiếu thông tin!" });
+    }
+
+    try {
+        // 1. MÃ HÓA MẬT KHẨU (Quan trọng nhất!)
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // 2. Lưu mật khẩu ĐÃ MÃ HÓA vào database
+        const sql = "UPDATE users SET password = ? WHERE email = ?";
+
+        db.query(sql, [hashedPassword, email], (err, result) => {
+            if (err) {
+                console.error("❌ Lỗi SQL:", err);
+                return res.status(500).json({ message: "Lỗi server: " + err.message });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "Email không tồn tại!" });
+            }
+
+            console.log("✅ Đổi mật khẩu thành công!");
+            res.json({ message: "Cập nhật mật khẩu thành công!" });
+        });
+
+    } catch (error) {
+        console.error("Lỗi mã hóa:", error);
+        res.status(500).json({ message: "Lỗi server khi mã hóa mật khẩu" });
+    }
+});
+
+// API: Lấy thống kê cho Dashboard Admin
+app.get('/api/dashboard/stats', (req, res) => {
+    // Chúng ta sẽ chạy nhiều câu lệnh SQL đếm cùng lúc
+    const queries = {
+        athletes: "SELECT COUNT(*) AS count FROM athletes",
+        products: "SELECT COUNT(*) AS count FROM products",
+        orders:   "SELECT COUNT(*) AS count FROM orders",
+        // Nếu bà chưa có bảng events hay articles thì comment 2 dòng dưới lại nha
+        events:   "SELECT COUNT(*) AS count FROM events", 
+        articles: "SELECT COUNT(*) AS count FROM articles" 
+    };
+
+    const stats = {};
+    let completed = 0;
+    const keys = Object.keys(queries);
+
+    // Hàm chạy từng query
+    keys.forEach(key => {
+        db.query(queries[key], (err, result) => {
+            if (err) {
+                console.error(`Lỗi đếm ${key}:`, err.message);
+                stats[key] = 0; // Nếu lỗi bảng chưa có thì trả về 0
+            } else {
+                stats[key] = result[0].count;
+            }
+            
+            completed++;
+            // Khi nào chạy xong hết 5 cái thì trả về cho Frontend
+            if (completed === keys.length) {
+                res.json(stats);
+            }
+        });
+    });
+});
+
 // ==========================================
 
-// Route Bảo mật (Đăng nhập, Đăng ký, Google Login)
 app.use('/api/auth', authRoutes);
-
-// Route Sản phẩm (Xem, Thêm, Sửa, Xóa)
 app.use('/api/products', productRoutes);
-
-// Route Tuyển thủ (Xem, Thêm, Sửa, Xóa)
 app.use('/api/athletes', athleteRoutes);
-
-// Route Giỏ hàng (Cần đăng nhập -> dùng authenticateUser)
 app.use('/api/cart', authenticateUser, cartRoutes); 
-
-// Route Đơn hàng (Cần đăng nhập -> dùng authenticateUser)
-
 app.use('/api/orders', orderRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/articles', articleRoutes);
 
-// ==========================================
-// KHỞI CHẠY SERVER
-// ==========================================
 app.listen(PORT, () => {
     console.log(`Server đang chạy tại http://localhost:${PORT}`);
-    console.log(`[MySQL] Đang chờ kết nối...`);
 });

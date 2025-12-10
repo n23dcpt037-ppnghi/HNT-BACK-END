@@ -91,7 +91,6 @@ CREATE TABLE cart_items (
 
 
 -- 4. THEM KHOA NGOAI (FOREIGN KEYS)
--- (Them sau cung de dam bao cac bang da ton tai)
 
 ALTER TABLE orders
     ADD CONSTRAINT fk_orders_users FOREIGN KEY (user_id) REFERENCES users(user_id);

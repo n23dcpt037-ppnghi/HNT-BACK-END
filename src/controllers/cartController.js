@@ -86,10 +86,9 @@ const removeFromCart = async (req, res) => {
     }
 };
 
-// Đảm bảo bạn đã EXPORT tất cả các hàm!
 module.exports = { 
     getCart, 
     addToCart, 
-    updateQuantity,  // <--- Lỗi là do thiếu dòng này!
+    updateQuantity,  
     removeFromCart 
 };

@@ -16,7 +16,7 @@ const sendOrderConfirmation = async (recipientEmail, orderDetails) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: recipientEmail,
-        subject: `[CLB Bơi Lội] Xác nhận Đơn hàng #${orderDetails.orderId}`,
+        subject: `[CLB Bơi Lội HNT] Xác nhận Đơn hàng #${orderDetails.orderId}`,
         html: `<p>Xin chào ${orderDetails.shippingName},</p>
                <p>Đơn hàng #${orderDetails.orderId} của bạn đã được tiếp nhận thành công.</p>
                <p>Tổng tiền: ${orderDetails.totalAmount} VND</p>

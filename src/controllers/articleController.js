@@ -5,50 +5,261 @@ const getAllArticles = async (req, res) => {
         const articles = await articleModel.findAll();
         res.status(200).json(articles);
     } catch (error) {
-        res.status(500).json({ message: "Lỗi Server." });
+        console.error('❌ Lỗi getAllArticles:', error);
+        res.status(500).json({ 
+            message: "Lỗi Server khi lấy danh sách bài viết.",
+            error: error.message 
+        });
     }
 };
 
 const getArticleById = async (req, res) => {
     try {
         const article = await articleModel.findById(req.params.id);
-        if (!article) return res.status(404).json({ message: "Bài viết không tồn tại." });
+        if (!article) {
+            return res.status(404).json({ message: "Bài viết không tồn tại." });
+        }
         res.status(200).json(article);
     } catch (error) {
-        res.status(500).json({ message: "Lỗi Server." });
+        console.error('❌ Lỗi getArticleById:', error);
+        res.status(500).json({ 
+            message: "Lỗi Server khi lấy bài viết.",
+            error: error.message 
+        });
     }
 };
 
 const createArticle = async (req, res) => {
     try {
-        const { title, content } = req.body;
-        if (!title || !content) return res.status(400).json({ message: "Thiếu tiêu đề hoặc nội dung." });
+        console.log('📥 Dữ liệu nhận được (body):', req.body);
+        console.log('📎 File nhận được (files):', req.files);
         
-        await articleModel.createArticle(req.body);
-        res.status(201).json({ message: "Đăng bài thành công!" });
+        // Xử lý dữ liệu từ form-data
+        const { 
+            article_code, 
+            title, 
+            author, 
+            category, 
+            summary, 
+            content, 
+            published_at 
+        } = req.body;
+
+        // Validate dữ liệu bắt buộc
+        const requiredFields = ['title', 'author', 'category', 'content'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+            return res.status(400).json({ 
+                message: "Thiếu thông tin bắt buộc!",
+                missing: missingFields
+            });
+        }
+
+        // Xử lý file upload
+        let image_url = null;
+        let file_url = null;
+        
+        if (req.files) {
+            if (req.files.image && req.files.image[0]) {
+                image_url = `articles/${req.files.image[0].filename}`;
+            }
+            if (req.files.content_file && req.files.content_file[0]) {
+                file_url = `articles/${req.files.content_file[0].filename}`;
+            }
+        }
+
+        // Tạo mã bài viết nếu không có
+        const articleCode = article_code || `TT${Date.now()}`;
+
+        // Kiểm tra mã bài viết đã tồn tại chưa
+        const existingArticle = await articleModel.findByCode(articleCode);
+        if (existingArticle) {
+            return res.status(400).json({ 
+                message: "Mã bài viết đã tồn tại!",
+                existing_code: articleCode 
+            });
+        }
+
+        // Chuẩn bị dữ liệu lưu vào DB
+        const articleData = {
+            article_code: articleCode,
+            title: title.trim(),
+            author: author.trim(),
+            category: category.trim(),
+            summary: summary ? summary.trim() : '',
+            content: content.trim(),
+            image_url,
+            file_url,
+            published_at: published_at || new Date().toISOString().split('T')[0]
+        };
+
+        console.log('💾 Dữ liệu chuẩn bị lưu:', articleData);
+
+        // Lưu vào DB
+        const articleId = await articleModel.createArticle(articleData);
+        
+        res.status(201).json({ 
+            success: true,
+            message: "Đăng bài thành công!",
+            article_id: articleId,
+            article_code: articleCode,
+            data: articleData
+        });
+
     } catch (error) {
-        res.status(500).json({ message: "Lỗi Server." });
+        console.error('❌ Lỗi createArticle:', error);
+        res.status(500).json({ 
+            success: false,
+            message: "Lỗi Server khi tạo bài viết.",
+            error: error.message 
+        });
     }
 };
 
 const updateArticle = async (req, res) => {
     try {
-        const affectedRows = await articleModel.updateArticle(req.params.id, req.body);
-        if (affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài viết." });
-        res.status(200).json({ message: "Cập nhật bài viết thành công!" });
+        const articleId = req.params.id;
+        console.log(`✏️ Cập nhật bài viết ID: ${articleId}`);
+        console.log('📥 Dữ liệu body:', req.body);
+        console.log('📎 Files:', req.files);
+        
+        // Xử lý dữ liệu
+        const { 
+            title, 
+            author, 
+            category, 
+            summary, 
+            content, 
+            published_at 
+        } = req.body;
+
+        // Lấy bài viết hiện tại
+        const currentArticle = await articleModel.findById(articleId);
+        if (!currentArticle) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Không tìm thấy bài viết." 
+            });
+        }
+
+        // Xử lý file upload
+        let image_url = currentArticle.image_url;
+        let file_url = currentArticle.file_url;
+        
+        if (req.files) {
+            if (req.files.image && req.files.image[0]) {
+                image_url = `articles/${req.files.image[0].filename}`;
+            }
+            if (req.files.content_file && req.files.content_file[0]) {
+                file_url = `articles/${req.files.content_file[0].filename}`;
+            }
+        }
+
+        // Chuẩn bị dữ liệu cập nhật
+        const updateData = {
+            title: title !== undefined ? title.trim() : currentArticle.title,
+            author: author !== undefined ? author.trim() : currentArticle.author,
+            category: category !== undefined ? category.trim() : currentArticle.category,
+            summary: summary !== undefined ? summary.trim() : currentArticle.summary,
+            content: content !== undefined ? content.trim() : currentArticle.content,
+            image_url,
+            file_url,
+            published_at: published_at || currentArticle.published_date
+        };
+
+        console.log('💾 Dữ liệu cập nhật:', updateData);
+
+        // Thực hiện cập nhật
+        const affectedRows = await articleModel.updateArticle(articleId, updateData);
+        
+        if (affectedRows === 0) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Không tìm thấy bài viết để cập nhật." 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true,
+            message: "Cập nhật bài viết thành công!",
+            article_id: articleId,
+            data: updateData
+        });
+
     } catch (error) {
-        res.status(500).json({ message: "Lỗi Server." });
+        console.error('❌ Lỗi updateArticle:', error);
+        res.status(500).json({ 
+            success: false,
+            message: "Lỗi Server khi cập nhật bài viết.",
+            error: error.message 
+        });
     }
 };
 
 const deleteArticle = async (req, res) => {
     try {
         const affectedRows = await articleModel.deleteArticle(req.params.id);
-        if (affectedRows === 0) return res.status(404).json({ message: "Không tìm thấy bài viết." });
-        res.status(200).json({ message: "Xóa bài viết thành công!" });
+        if (affectedRows === 0) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Không tìm thấy bài viết." 
+            });
+        }
+        
+        res.status(200).json({ 
+            success: true,
+            message: "Xóa bài viết thành công!" 
+        });
     } catch (error) {
-        res.status(500).json({ message: "Lỗi Server." });
+        console.error('❌ Lỗi deleteArticle:', error);
+        res.status(500).json({ 
+            success: false,
+            message: "Lỗi Server khi xóa bài viết.",
+            error: error.message 
+        });
     }
 };
 
-module.exports = { getAllArticles, getArticleById, createArticle, updateArticle, deleteArticle };
+const getPopularArticles = async (req, res) => {
+    try {
+        const articles = await articleModel.findAll();
+        const popularArticles = articles
+            .sort((a, b) => b.views - a.views)
+            .slice(0, 5);
+        res.status(200).json(popularArticles);
+    } catch (error) {
+        console.error('❌ Lỗi getPopularArticles:', error);
+        res.status(500).json({ 
+            message: "Lỗi Server khi lấy bài viết phổ biến.",
+            error: error.message 
+        });
+    }
+};
+
+// Tăng lượt xem
+const incrementArticleViews = async (req, res) => {
+    try {
+        const affectedRows = await articleModel.incrementViews(req.params.id);
+        if (affectedRows === 0) {
+            return res.status(404).json({ message: "Bài viết không tồn tại." });
+        }
+        res.status(200).json({ message: "Đã tăng lượt xem." });
+    } catch (error) {
+        console.error('❌ Lỗi incrementArticleViews:', error);
+        res.status(500).json({ 
+            message: "Lỗi Server khi tăng lượt xem.",
+            error: error.message 
+        });
+    }
+};
+
+module.exports = { 
+    getAllArticles, 
+    getArticleById, 
+    createArticle, 
+    updateArticle, 
+    deleteArticle, 
+    getPopularArticles,
+    incrementArticleViews 
+};

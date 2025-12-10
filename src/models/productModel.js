@@ -3,7 +3,7 @@ const db = require('../config/db');
 // READ: Lấy tất cả Sản phẩm có tồn kho > 0
 const findAll = async () => {
     try {
-        const [rows] = await db.query('SELECT product_id, product_name, price_vnd, stock, image_url, category FROM products WHERE stock > 0');
+        const [rows] = await db.query('SELECT product_id, product_name, price_vnd, stock, image_url, image_url_2, category FROM products WHERE stock > 0');
         return rows;
     } catch (error) {
         throw error;
@@ -22,23 +22,47 @@ const findById = async (id) => {
 
 // CREATE: Thêm Sản phẩm mới (Admin)
 const createProduct = async (data) => {
-    try {
-        const [result] = await db.query(
-            'INSERT INTO products (product_name, category, description, price_vnd, stock, image_url) VALUES (?, ?, ?, ?, ?, ?)',
-            [data.product_name, data.category, data.description, data.price_vnd, data.stock, data.image_url]
-        );
-        return result.insertId; 
-    } catch (error) {
-        throw error;
-    }
+    const sql = `
+        INSERT INTO products 
+        (product_name, category, description, price_vnd, stock, image_url) 
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+        data.product_name,
+        data.category,
+        data.description || null,
+        data.price_vnd,
+        data.stock,
+        data.image_url || null
+    ];
+    
+    const [result] = await db.execute(sql, values);
+    return result.insertId;
 };
 
-// UPDATE: Cập nhật thông tin Sản phẩm (Admin)
+// UPDATE: Cập nhật thông tin Sản phẩm (Admin) 
 const updateProduct = async (id, data) => {
     try {
+        // Bước 1: Lấy thông tin sản phẩm hiện tại trong kho ra trước
+        const currentProduct = await findById(id); 
+        
+        if (!currentProduct) {
+            return 0; // Không tìm thấy sản phẩm để sửa
+        }
+
+        // Bước 2: Gộp dữ liệu mới vào dữ liệu cũ
+        // Logic: Nếu data gửi lên có giá trị (khác undefined) thì lấy, không thì giữ cái cũ
+        const name = data.product_name !== undefined ? data.product_name : currentProduct.product_name;
+        const category = data.category !== undefined ? data.category : currentProduct.category;
+        const desc = data.description !== undefined ? data.description : currentProduct.description;
+        const price = data.price_vnd !== undefined ? data.price_vnd : currentProduct.price_vnd;
+        const stock = data.stock !== undefined ? data.stock : currentProduct.stock;
+        const img = data.image_url !== undefined ? data.image_url : currentProduct.image_url;
+
+        // Bước 3: Update với dữ liệu đầy đủ
         const [result] = await db.query(
             'UPDATE products SET product_name = ?, category = ?, description = ?, price_vnd = ?, stock = ?, image_url = ? WHERE product_id = ?',
-            [data.product_name, data.category, data.description, data.price_vnd, data.stock, data.image_url, id]
+            [name, category, desc, price, stock, img, id]
         );
         return result.affectedRows;
     } catch (error) {
@@ -62,5 +86,5 @@ module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
-    // Hàm updateStock sẽ do Người A sử dụng khi tạo đơn hàng
+
 };
