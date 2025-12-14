@@ -45,7 +45,7 @@ const removeItemFromCart = async (userId, productId) => {
     }
 };
 
-// SET QUANTITY: Cập nhật số lượng mới (thay thế số lượng cũ)
+// SET QUANTITY: Cập nhật số lượng mới
 const setItemQuantity = async (userId, productId, newQuantity) => {
     try {
         const [result] = await db.query(
@@ -58,7 +58,7 @@ const setItemQuantity = async (userId, productId, newQuantity) => {
     }
 };
 
-// DELETE: Xóa toàn bộ Giỏ hàng (sẽ dùng khi Người A tạo đơn hàng thành công)
+// DELETE: Xóa toàn bộ Giỏ hàng
 const clearCartByUserId = async (userId) => {
     try {
         const [result] = await db.query(

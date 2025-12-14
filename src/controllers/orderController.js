@@ -1,7 +1,7 @@
 const orderModel = require('../models/orderModel');
 const cartModel = require('../models/cartModel');
 const userModel = require('../models/userModel');
-const { sendOrderConfirmation } = require('../config/emailService'); // Tích hợp Email
+const { sendOrderConfirmation } = require('../config/emailService'); 
 const db = require('../config/db');
 const placeOrder = async (req, res) => {
     try {
@@ -59,8 +59,8 @@ const placeOrder = async (req, res) => {
 // Xử lý yêu cầu cập nhật
 const updateShipping = async (req, res) => {
     try {
-        const userId = req.userId; // Lấy từ token
-        const orderId = req.params.id; // Lấy từ URL
+        const userId = req.userId; 
+        const orderId = req.params.id; 
         const { shipping_name, shipping_address, shipping_phone } = req.body;
 
         if (!shipping_name || !shipping_address || !shipping_phone) {
@@ -90,8 +90,7 @@ const updateShipping = async (req, res) => {
 const getUserOrders = async (req, res) => {
     try {
         const userId = req.userId;
-        
-        // Gọi model để lấy đơn hàng
+
         const orders = await orderModel.getOrdersByUserId(userId);
         
         res.status(200).json({
@@ -108,12 +107,11 @@ const getUserOrders = async (req, res) => {
     }
 };
 
-// Thay thế cả getOrderDetail và getOrderById bằng hàm này
 const getOrderById = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const userId = req.userId; // Từ middleware authenticateUser
-        const userRole = req.userRole || 'user'; // Từ middleware
+        const userId = req.userId; 
+        const userRole = req.userRole || 'user'; 
 
         console.log(`[DEBUG] Lấy đơn hàng ${orderId} cho user ${userId} (role: ${userRole})`);
 
@@ -202,7 +200,6 @@ const getOrderById = async (req, res) => {
     }
 };
 
-// Thêm vào exports
 module.exports = { 
     placeOrder,
     updateShipping,

@@ -40,7 +40,7 @@ router.get('/upcoming', eventController.getUpcomingEvents);
 router.get('/past', eventController.getPastEvents);
 router.get('/:id', eventController.getEventById);
 
-// 3. ADMIN ROUTES - Quản lý sự kiện (CÓ UPLOAD ẢNH)
+// 3. ADMIN ROUTES - Quản lý sự kiện
 router.post('/', authenticateUser, adminOnly, uploadEventImage.single('image'), eventController.createEvent);
 router.put('/:id', authenticateUser, adminOnly, uploadEventImage.single('image'), eventController.updateEvent);
 router.delete('/:id', authenticateUser, adminOnly, eventController.deleteEvent);

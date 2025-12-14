@@ -1,8 +1,5 @@
-const mysql = require('mysql2/promise'); // Sử dụng mysql2/promise để dùng async/await
-require('dotenv').config(); // Tải các biến từ file .env
-
-// Tạo một "Pool" (bể chứa) kết nối CSDL
-// Pool giúp quản lý nhiều kết nối cùng lúc, tốt cho hiệu năng server
+const mysql = require('mysql2/promise'); 
+require('dotenv').config(); 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -13,11 +10,10 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Kiểm tra kết nối
 pool.getConnection()
     .then(connection => {
         console.log('[MySQL] Đã kết nối CSDL thành công!');
-        connection.release(); // Trả kết nối về lại cho pool
+        connection.release(); 
     })
     .catch(err => {
         console.error('[MySQL] Lỗi kết nối CSDL:', err.message);
@@ -30,7 +26,6 @@ pool.getConnection()
         }
     });
 
-// Xuất (export) pool này ra để các file Model có thể sử dụng (db.query)
 module.exports = pool;
 
 

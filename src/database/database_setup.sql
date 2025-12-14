@@ -79,18 +79,15 @@ CREATE TABLE reviews (
     review_date DATE DEFAULT (CURRENT_DATE) NOT NULL
 );
 
--- Bang `cart_items` (Gio hang - BANG NAY BI THIEU TRUOC DAY)
+-- Bang `cart_items` 
 CREATE TABLE cart_items (
     cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
-    -- Them khoa UNIQUE de su dung "ON DUPLICATE KEY UPDATE" trong code Node.js
     UNIQUE KEY uk_user_product (user_id, product_id)
 );
 
-
--- 4. THEM KHOA NGOAI (FOREIGN KEYS)
 
 ALTER TABLE orders
     ADD CONSTRAINT fk_orders_users FOREIGN KEY (user_id) REFERENCES users(user_id);
@@ -110,5 +107,4 @@ ALTER TABLE cart_items
     ADD CONSTRAINT fk_cartitems_users FOREIGN KEY (user_id) REFERENCES users(user_id),
     ADD CONSTRAINT fk_cartitems_products FOREIGN KEY (product_id) REFERENCES products(product_id);
 
--- Thong bao hoan thanh
 SELECT 'DA TAO CSDL VA CAC BANG THANH CONG!' AS status;

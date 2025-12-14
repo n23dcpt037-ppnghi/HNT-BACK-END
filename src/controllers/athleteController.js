@@ -1,6 +1,6 @@
 const athleteModel = require('../models/athleteModel');
 
-// Hàm format date - PHẢI ĐỊNH NGHĨA TRƯỚC KHI SỬ DỤNG
+// Hàm format date
 function formatDate(dateString) {
     if (!dateString) return '';
     try {
@@ -70,8 +70,7 @@ const getAllAthletes = async (req, res) => {
         const athletes = await athleteModel.findAll();
         
         console.log(`✅ Tìm thấy ${athletes.length} tuyển thủ`);
-        
-        // Format dữ liệu để phù hợp với frontend
+
         const formattedAthletes = athletes.map(athlete => ({
             athlete_id: athlete.athlete_id,
             full_name: athlete.full_name || 'Chưa có tên',
@@ -119,24 +118,19 @@ const getAthleteById = async (req, res) => {
         }
 
         console.log(`✅ Tìm thấy tuyển thủ: ${athlete.full_name}`);
-        
-        // Lấy giải thưởng từ database nếu có, nếu không dùng mẫu
         let awards = [];
         try {
-            // Nếu có hàm getAwardsByAthleteId trong model
             if (athleteModel.getAwardsByAthleteId) {
                 awards = await athleteModel.getAwardsByAthleteId(id);
             }
         } catch (awardError) {
             console.log('⚠️ Không thể lấy giải thưởng từ DB:', awardError.message);
         }
-        
-        // Nếu không có giải thưởng từ DB, dùng dữ liệu mẫu
+
         if (!awards || awards.length === 0) {
             awards = getSampleAwards(id);
         }
-        
-        // Đảm bảo awards có cấu trúc đúng
+
         awards = awards.map(award => ({
             type: award.award_type || award.type || 'other',
             name: award.award_name || award.name || 'Không có tên',
@@ -144,7 +138,7 @@ const getAthleteById = async (req, res) => {
             year: award.year || new Date().getFullYear()
         }));
 
-        // Format dữ liệu - SỬ DỤNG HÀM formatDate ĐÃ ĐƯỢC ĐỊNH NGHĨA Ở TRÊN
+        // Format dữ liệu
         const formattedAthlete = {
             athlete_id: athlete.athlete_id,
             full_name: athlete.full_name || 'Chưa có tên',

@@ -33,8 +33,7 @@ const createArticle = async (req, res) => {
     try {
         console.log('📥 Dữ liệu nhận được (body):', req.body);
         console.log('📎 File nhận được (files):', req.files);
-        
-        // Xử lý dữ liệu từ form-data
+
         const { 
             article_code, 
             title, 
@@ -45,7 +44,6 @@ const createArticle = async (req, res) => {
             published_at 
         } = req.body;
 
-        // Validate dữ liệu bắt buộc
         const requiredFields = ['title', 'author', 'category', 'content'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
         
@@ -56,7 +54,6 @@ const createArticle = async (req, res) => {
             });
         }
 
-        // Xử lý file upload
         let image_url = null;
         let file_url = null;
         
@@ -69,10 +66,8 @@ const createArticle = async (req, res) => {
             }
         }
 
-        // Tạo mã bài viết nếu không có
         const articleCode = article_code || `TT${Date.now()}`;
 
-        // Kiểm tra mã bài viết đã tồn tại chưa
         const existingArticle = await articleModel.findByCode(articleCode);
         if (existingArticle) {
             return res.status(400).json({ 
@@ -81,7 +76,6 @@ const createArticle = async (req, res) => {
             });
         }
 
-        // Chuẩn bị dữ liệu lưu vào DB
         const articleData = {
             article_code: articleCode,
             title: title.trim(),
@@ -96,7 +90,6 @@ const createArticle = async (req, res) => {
 
         console.log('💾 Dữ liệu chuẩn bị lưu:', articleData);
 
-        // Lưu vào DB
         const articleId = await articleModel.createArticle(articleData);
         
         res.status(201).json({ 
@@ -123,8 +116,7 @@ const updateArticle = async (req, res) => {
         console.log(`✏️ Cập nhật bài viết ID: ${articleId}`);
         console.log('📥 Dữ liệu body:', req.body);
         console.log('📎 Files:', req.files);
-        
-        // Xử lý dữ liệu
+
         const { 
             title, 
             author, 
@@ -134,7 +126,6 @@ const updateArticle = async (req, res) => {
             published_at 
         } = req.body;
 
-        // Lấy bài viết hiện tại
         const currentArticle = await articleModel.findById(articleId);
         if (!currentArticle) {
             return res.status(404).json({ 
@@ -143,7 +134,6 @@ const updateArticle = async (req, res) => {
             });
         }
 
-        // Xử lý file upload
         let image_url = currentArticle.image_url;
         let file_url = currentArticle.file_url;
         
@@ -156,7 +146,6 @@ const updateArticle = async (req, res) => {
             }
         }
 
-        // Chuẩn bị dữ liệu cập nhật
         const updateData = {
             title: title !== undefined ? title.trim() : currentArticle.title,
             author: author !== undefined ? author.trim() : currentArticle.author,
@@ -170,7 +159,6 @@ const updateArticle = async (req, res) => {
 
         console.log('💾 Dữ liệu cập nhật:', updateData);
 
-        // Thực hiện cập nhật
         const affectedRows = await articleModel.updateArticle(articleId, updateData);
         
         if (affectedRows === 0) {
@@ -237,7 +225,6 @@ const getPopularArticles = async (req, res) => {
     }
 };
 
-// Tăng lượt xem
 const incrementArticleViews = async (req, res) => {
     try {
         const affectedRows = await articleModel.incrementViews(req.params.id);

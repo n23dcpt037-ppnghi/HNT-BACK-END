@@ -12,7 +12,7 @@ const findAll = async () => {
     }
 };
 
-// Lấy sự kiện sắp diễn ra (từ ngày hiện tại trở đi)
+// Lấy sự kiện sắp diễn ra
 const findUpcoming = async () => {
     try {
         const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD

@@ -1,4 +1,3 @@
-// src/models/userModel.js
 const db = require('../config/db');
 
 // Tìm người dùng bằng email (dùng cho Đăng nhập)
@@ -16,7 +15,7 @@ const createUser = async (data) => {
     return result.insertId;
 };
 
-// Tìm người dùng bằng ID (dùng cho Middleware)
+// Tìm người dùng bằng ID
 const findById = async (id) => {
     const [rows] = await db.query('SELECT user_id, email, full_name, role FROM users WHERE user_id = ?', [id]);
     return rows[0];

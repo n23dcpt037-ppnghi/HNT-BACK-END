@@ -12,7 +12,7 @@ router.post('/login', authController.login);
 // ROUTE GOOGLE
 router.post('/google', authController.googleLogin);
 
-router.get('/profile', authenticateUser, authController.getProfile);      // GET profile
-router.put('/profile', authenticateUser, authController.updateProfile);   // UPDATE profile
+router.get('/profile', authenticateUser, authController.getProfile);     
+router.put('/profile', authenticateUser, authController.updateProfile);   
 
 module.exports = router;

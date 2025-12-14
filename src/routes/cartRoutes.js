@@ -3,7 +3,6 @@ const router = express.Router();
 const cartController = require('../controllers/cartController');
 const { authenticateUser } = require('../middleware/authMiddleware'); 
 
-// Áp dụng Middleware xác thực cho TẤT CẢ các Route trong module này
 router.use(authenticateUser);
 
 // [CẦN ĐĂNG NHẬP] Xem giỏ hàng

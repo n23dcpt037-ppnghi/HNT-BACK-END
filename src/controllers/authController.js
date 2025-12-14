@@ -96,7 +96,6 @@ const googleLogin = async (req, res) => {
 
 const getProfile = async (req, res) => {
     try {
-        // Lấy userId từ Middleware đã giải mã (dùng req.userId cho chắc chắn)
         const userId = req.userId || (req.user && req.user.userId);
         
         console.log('--- GET PROFILE ---');
@@ -108,8 +107,7 @@ const getProfile = async (req, res) => {
                 message: 'Không xác định được người dùng (Token lỗi)' 
             });
         }
-        
-        // Truy vấn DB
+
         const [users] = await db.execute(
             'SELECT user_id, email, full_name, phone, address, gender, date_of_birth, role FROM users WHERE user_id = ?',
             [userId]
@@ -122,7 +120,6 @@ const getProfile = async (req, res) => {
             });
         }
 
-        // Trả về kết quả (Bỏ password)
         const user = users[0];
         res.json({
             success: true,
@@ -138,7 +135,7 @@ const getProfile = async (req, res) => {
     }
 };
 
-// HÀM UPDATE PROFILE - SỬA THÀNH CONST
+// HÀM UPDATE PROFILE
 const updateProfile = async (req, res) => {
     try {
         const userId = req.userId;
@@ -151,8 +148,7 @@ const updateProfile = async (req, res) => {
                 message: 'Họ tên và số điện thoại là bắt buộc' 
             });
         }
-        
-        // XỬ LÝ DATE: Nếu empty string thì chuyển thành null
+
         const processedDateOfBirth = (date_of_birth === '' || !date_of_birth) 
             ? null 
             : date_of_birth;
@@ -188,7 +184,6 @@ const updateProfile = async (req, res) => {
     }
 };
 
-// DAM BAO EXPORT DAY DU
 module.exports = { 
     register, 
     login,

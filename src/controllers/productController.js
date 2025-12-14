@@ -27,7 +27,6 @@ const getProductById = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------------
 // [ADMIN ONLY] CREATE: Thêm sản phẩm mới
 const createProduct = async (req, res) => {
     try {
@@ -37,7 +36,7 @@ const createProduct = async (req, res) => {
         if (req.file) {
             data.image_url = req.file.filename; 
         } else {
-            data.image_url = null; // Hoặc để một ảnh mặc định
+            data.image_url = null;
         }
 
         // Kiểm tra dữ liệu bắt buộc
@@ -64,8 +63,6 @@ const updateProduct = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
         
-        // Xử lý ảnh: Nếu User chọn ảnh mới -> Multer sẽ tạo req.file
-        // Nếu User không chọn ảnh mới -> req.file là undefined -> Model sẽ giữ ảnh cũ
         if (req.file) {
             data.image_url = req.file.filename;
         }
@@ -77,8 +74,6 @@ const updateProduct = async (req, res) => {
 
         const affectedRows = await productModel.updateProduct(id, data);
         
-        // Lưu ý: affectedRows có thể = 0 nếu bấm Lưu mà không sửa gì (MySQL tự tối ưu)
-        // Nên trả về thành công luôn
         res.status(200).json({ message: "Cập nhật sản phẩm thành công." });
 
     } catch (error) {

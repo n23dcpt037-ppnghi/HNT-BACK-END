@@ -67,7 +67,7 @@ const findByCode = async (article_code) => {
     }
 };
 
-// Tạo bài báo mới (Với đầy đủ trường)
+// Tạo bài báo mới 
 const createArticle = async (data) => {
     try {
         console.log('💾 Dữ liệu lưu vào DB:', data);
@@ -97,7 +97,7 @@ const createArticle = async (data) => {
     }
 };
 
-// Cập nhật bài báo (Với đầy đủ trường)
+// Cập nhật bài báo 
 const updateArticle = async (id, data) => {
     try {
         // 1. Lấy dữ liệu cũ
@@ -107,7 +107,7 @@ const updateArticle = async (id, data) => {
         
         const oldData = rows[0];
 
-        // 2. Gộp dữ liệu (Giữ cũ nếu mới không có)
+        // 2. Gộp dữ liệu 
         const updateFields = {
             title: data.title !== undefined ? data.title : oldData.title,
             author: data.author !== undefined ? data.author : oldData.author,

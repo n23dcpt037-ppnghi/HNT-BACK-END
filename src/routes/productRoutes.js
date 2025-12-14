@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { authenticateUser, adminOnly } = require('../middleware/authMiddleware'); // Import Middleware
+const { authenticateUser, adminOnly } = require('../middleware/authMiddleware'); 
 const mysql = require('mysql2');
 require('dotenv').config();
 const multer = require('multer');
@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        // Đặt tên file tránh trùng: Time + Random + Đuôi file gốc
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + path.extname(file.originalname));
     }
@@ -28,11 +27,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // 1. ROUTES CÔNG KHAI (PUBLIC - READ)
-router.get('/', productController.getAllProducts); // GET /api/products
-router.get('/:id', productController.getProductById); // GET /api/products/1
+router.get('/', productController.getAllProducts); 
+router.get('/:id', productController.getProductById); 
 
 // 2. ROUTES DÀNH CHO ADMIN (CREATE, UPDATE, DELETE)
-// Thứ tự: Middleware Xác thực -> Middleware Phân quyền (AdminOnly) -> Controller
 router.post('/', 
     authenticateUser, 
     adminOnly, 
@@ -45,11 +43,10 @@ router.put('/:id',
     adminOnly, 
     upload.single('image'),  
     productController.updateProduct
-); // PUT /api/products/:id
+); 
 
 
 router.get('/', (req, res) => {
-    // ORDER BY event_date DESC: Ngày gần nhất lên đầu
     const sql = "SELECT * FROM products ORDER BY product_id DESC"; 
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ message: "Lỗi server" });
@@ -57,7 +54,6 @@ router.get('/', (req, res) => {
     });
 });
 
- // DELETE /api/products/:id
 router.delete('/:id', authenticateUser, adminOnly, (req, res) => {
     const sql = "DELETE FROM products WHERE product_id = ?";
     db.query(sql, [req.params.id], (err, result) => {

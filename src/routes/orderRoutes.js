@@ -12,11 +12,8 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME || 'swimming_club_shop'
 });
 
-// Route này bắt buộc phải ĐĂNG NHẬP để biết ai đang đặt hàng
-router.post('/', authenticateUser, orderController.placeOrder); // POST /api/orders
+router.post('/', authenticateUser, orderController.placeOrder); 
 
-// ROUTE MOI: Cập nhật thông tin giao hàng
-// PUT /api/orders/:id/shipping
 router.put('/:id/shipping', authenticateUser, orderController.updateShipping);
 router.get('/my-orders', authenticateUser, orderController.getUserOrders);
 router.get('/:id', authenticateUser, orderController.getOrderById);

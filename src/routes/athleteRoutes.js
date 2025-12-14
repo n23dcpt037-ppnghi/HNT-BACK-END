@@ -21,7 +21,6 @@ const storage = multer.diskStorage({
         cb(null, 'tuyenthu/');
     },
     filename: function (req, file, cb) {
-        // Tạo tên file unique: timestamp-random.extension
         const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
         cb(null, uniqueName);
     }
@@ -29,12 +28,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+    limits: { fileSize: 2 * 1024 * 1024 }
 });
 
 // 1. ROUTES CÔNG KHAI (PUBLIC - READ)
-router.get('/', athleteController.getAllAthletes); // GET /api/athletes (Xem danh sách)
-router.get('/:id', athleteController.getAthleteById); // GET /api/athletes/1 (Xem chi tiết)
+router.get('/', athleteController.getAllAthletes); 
+router.get('/:id', athleteController.getAthleteById); 
 
 // 2. ROUTES DÀNH CHO ADMIN (CREATE, UPDATE, DELETE)
 // Lấy danh sách tuyển thủ
@@ -67,18 +66,15 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// 3. POST create new athlete - THÊM UPLOAD ẢNH
+// 3. POST create new athlete
 router.post('/', authenticateUser, adminOnly, upload.single('image'), (req, res) => {
     try {
         console.log('Body:', req.body);
         console.log('File:', req.file);
-        
-        
-        // Nhận dữ liệu từ form
-        const data = req.body; // Không cần JSON.parse vì dùng FormData
+
+        const data = req.body; 
         const imageUrl = req.file ? req.file.filename : null;
-        
-        // SQL INSERT với đầy đủ các cột
+
         const sql = `
             INSERT INTO athletes 
             (full_name, nickname, position, specialty, 
@@ -97,8 +93,7 @@ router.post('/', authenticateUser, adminOnly, upload.single('image'), (req, res)
             receivedData: req.body 
         });
     }
-        
-        // Tính tuổi nếu có ngày sinh
+
         let age = null;
         if (data.date_of_birth) {
             const birthDate = new Date(data.date_of_birth);
@@ -159,8 +154,7 @@ router.put('/:id', authenticateUser, adminOnly, upload.single('image'), (req, re
         
         console.log(`Update athlete ${id}:`, data);
         console.log('File:', req.file);
-        
-        // Kiểm tra tuyển thủ có tồn tại không
+
         const checkSql = 'SELECT * FROM athletes WHERE athlete_id = ?';
         db.query(checkSql, [id], (checkErr, checkResults) => {
             if (checkErr) {
@@ -171,11 +165,9 @@ router.put('/:id', authenticateUser, adminOnly, upload.single('image'), (req, re
             if (checkResults.length === 0) {
                 return res.status(404).json({ message: 'Không tìm thấy tuyển thủ' });
             }
-            
-            // Nếu có upload ảnh mới, dùng ảnh mới, không thì giữ ảnh cũ
+
             const imageUrl = req.file ? req.file.filename : checkResults[0].image_url;
-            
-            // Tính tuổi nếu có ngày sinh mới
+
             let age = checkResults[0].age;
             if (data.date_of_birth) {
                 const birthDate = new Date(data.date_of_birth);

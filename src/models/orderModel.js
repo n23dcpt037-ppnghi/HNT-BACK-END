@@ -1,11 +1,7 @@
 const db = require('../config/db');
-const cartModel = require('./cartModel'); // Cần gọi Model Giỏ hàng
-const productModel = require('./productModel'); // Cần gọi Model Sản phẩm
+const cartModel = require('./cartModel'); 
+const productModel = require('./productModel'); 
 
-/**
- * Hàm tạo đơn hàng hoàn chỉnh (bao gồm Order, OrderDetails và trừ tồn kho)
- * Dùng TRANSACTION để đảm bảo tính toàn vẹn CSDL.
- */
 const createOrder = async (userId, cartItems, shippingData, totalAmount) => {
     // 1. Bắt đầu Transaction
     const connection = await db.getConnection();
@@ -17,7 +13,6 @@ const createOrder = async (userId, cartItems, shippingData, totalAmount) => {
         let subtotal = 0;
         
         for (const item of cartItems) {
-            // Trừ tồn kho
             await connection.query(
                 'UPDATE products SET stock = stock - ? WHERE product_id = ? AND stock >= ?',
                 [item.quantity, item.product_id, item.quantity]
@@ -30,7 +25,7 @@ const createOrder = async (userId, cartItems, shippingData, totalAmount) => {
             orderDetailsData.push([
                 item.product_id, 
                 item.quantity, 
-                item.price_vnd // Ghi lại giá tại thời điểm đặt hàng
+                item.price_vnd 
             ]);
         }
 
@@ -68,7 +63,6 @@ const createOrder = async (userId, cartItems, shippingData, totalAmount) => {
         return orderId;
 
     } catch (error) {
-        // Hoàn tác (Rollback) nếu có bất kỳ lỗi nào xảy ra
         await connection.rollback();
         throw error;
     } finally {
@@ -85,7 +79,7 @@ const updateShippingInfo = async (orderId, userId, newInfo) => {
     );
 
     if (rows.length === 0) {
-        throw new Error("ORDER_NOT_FOUND"); // Không tìm thấy đơn hàng của user này
+        throw new Error("ORDER_NOT_FOUND"); 
     }
 
     const currentStatus = rows[0].status;
@@ -139,7 +133,6 @@ const getOrdersByUserId = async (userId) => {
             order_code: `#ORDER${order.order_id.toString().padStart(6, '0')}`,
             item_count: order.item_count || 0,
             preview_product: order.first_product_name || 'Sản phẩm',
-            // Đảm bảo total_amount bao gồm ship
             total_amount: order.total_amount || (order.subtotal + 30000)
         }));
     } catch (error) {
@@ -150,7 +143,6 @@ const getOrdersByUserId = async (userId) => {
 
 const getOrderById = async (orderId, userId) => {
     try {
-        // Lấy thông tin đơn hàng chính
         const [orders] = await db.query(`
             SELECT 
                 o.order_id,
@@ -177,8 +169,7 @@ const getOrderById = async (orderId, userId) => {
         }
         
         const order = orders[0];
-        
-        // Lấy chi tiết đơn hàng THẬT từ bảng order_details
+
         const [orderItems] = await db.query(`
             SELECT 
                 od.order_detail_id,

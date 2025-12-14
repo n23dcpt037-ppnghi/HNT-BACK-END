@@ -78,7 +78,7 @@ const updateAthlete = async (id, data) => {
         if (rows.length === 0) return 0;
         const oldData = rows[0];
 
-        // 2. Gộp dữ liệu mới và cũ (Nếu data mới không có thì dùng cái cũ)
+        // 2. Gộp dữ liệu mới và cũ 
         const full_name = data.full_name || oldData.full_name;
         const nickname = data.nickname || oldData.nickname;
         const position = data.position || oldData.position;

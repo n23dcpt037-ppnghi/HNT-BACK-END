@@ -2,16 +2,14 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Cấu hình Transporter sử dụng các biến từ file .env
 const transporter = nodemailer.createTransport({
     service: 'gmail', 
     auth: {
         user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS // Đây là App Password
+        pass: process.env.EMAIL_PASS 
     }
 });
 
-// Hàm gửi email xác nhận đơn hàng
 const sendOrderConfirmation = async (recipientEmail, orderDetails) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -30,7 +28,6 @@ const sendOrderConfirmation = async (recipientEmail, orderDetails) => {
         return true;
     } catch (error) {
         console.error("Lỗi gửi email:", error);
-        // Ném lỗi ra để Controller bắt được
         throw new Error('Lỗi gửi email: ' + error.message);
     }
 };

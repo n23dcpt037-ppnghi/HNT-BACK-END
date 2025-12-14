@@ -41,8 +41,7 @@ app.use('/sk', express.static(path.join(__dirname, 'sk')));
 app.use('/sp_home/images', express.static(path.join(__dirname, '../sp_home/images')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Import Routes 
+ 
 const authRoutes = require('./src/routes/authRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const athleteRoutes = require('./src/routes/athleteRoutes');
@@ -52,7 +51,6 @@ const eventRoutes = require('./src/routes/eventRoutes');
 const articleRoutes = require('./src/routes/articleRoutes');
 
 
-// ==========================================
 app.post('/api/auth/reset-password', async (req, res) => {
     const { email, newPassword } = req.body;
 
@@ -63,11 +61,11 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
 
     try {
-        // 1. MÃ HÓA MẬT KHẨU (Quan trọng nhất!)
+        // 1. MÃ HÓA MẬT KHẨU
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        // 2. Lưu mật khẩu ĐÃ MÃ HÓA vào database
+        // 2. Lưu mật khẩu vào database
         const sql = "UPDATE users SET password = ? WHERE email = ?";
 
         db.query(sql, [hashedPassword, email], (err, result) => {
@@ -92,12 +90,10 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // API: Lấy thống kê cho Dashboard Admin
 app.get('/api/dashboard/stats', (req, res) => {
-    // Chúng ta sẽ chạy nhiều câu lệnh SQL đếm cùng lúc
     const queries = {
         athletes: "SELECT COUNT(*) AS count FROM athletes",
         products: "SELECT COUNT(*) AS count FROM products",
         orders:   "SELECT COUNT(*) AS count FROM orders",
-        // Nếu bà chưa có bảng events hay articles thì comment 2 dòng dưới lại nha
         events:   "SELECT COUNT(*) AS count FROM events", 
         articles: "SELECT COUNT(*) AS count FROM articles" 
     };
@@ -111,13 +107,12 @@ app.get('/api/dashboard/stats', (req, res) => {
         db.query(queries[key], (err, result) => {
             if (err) {
                 console.error(`Lỗi đếm ${key}:`, err.message);
-                stats[key] = 0; // Nếu lỗi bảng chưa có thì trả về 0
+                stats[key] = 0;
             } else {
                 stats[key] = result[0].count;
             }
             
             completed++;
-            // Khi nào chạy xong hết 5 cái thì trả về cho Frontend
             if (completed === keys.length) {
                 res.json(stats);
             }
@@ -125,7 +120,6 @@ app.get('/api/dashboard/stats', (req, res) => {
     });
 });
 
-// ==========================================
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

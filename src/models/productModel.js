@@ -43,23 +43,17 @@ const createProduct = async (data) => {
 // UPDATE: Cập nhật thông tin Sản phẩm (Admin) 
 const updateProduct = async (id, data) => {
     try {
-        // Bước 1: Lấy thông tin sản phẩm hiện tại trong kho ra trước
         const currentProduct = await findById(id); 
-        
         if (!currentProduct) {
-            return 0; // Không tìm thấy sản phẩm để sửa
+            return 0; 
         }
 
-        // Bước 2: Gộp dữ liệu mới vào dữ liệu cũ
-        // Logic: Nếu data gửi lên có giá trị (khác undefined) thì lấy, không thì giữ cái cũ
         const name = data.product_name !== undefined ? data.product_name : currentProduct.product_name;
         const category = data.category !== undefined ? data.category : currentProduct.category;
         const desc = data.description !== undefined ? data.description : currentProduct.description;
         const price = data.price_vnd !== undefined ? data.price_vnd : currentProduct.price_vnd;
         const stock = data.stock !== undefined ? data.stock : currentProduct.stock;
         const img = data.image_url !== undefined ? data.image_url : currentProduct.image_url;
-
-        // Bước 3: Update với dữ liệu đầy đủ
         const [result] = await db.query(
             'UPDATE products SET product_name = ?, category = ?, description = ?, price_vnd = ?, stock = ?, image_url = ? WHERE product_id = ?',
             [name, category, desc, price, stock, img, id]

@@ -255,7 +255,6 @@ const deleteEvent = async (req, res) => {
 
 // --- HÀM HỖ TRỢ ---
 
-// Đảm bảo date luôn là string YYYY-MM-DD
 function ensureDateFormat(dateInput) {
     if (!dateInput) return null;
     

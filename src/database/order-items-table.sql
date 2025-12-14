@@ -10,5 +10,5 @@ CREATE TABLE order_items (
 );
 
 INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
-(3, 1, 2, 250000), -- 2 sản phẩm ID 1, giá 250,000 mỗi cái
-(3, 2, 1, 200000); -- 1 sản phẩm ID 2, giá 200,000
+(3, 1, 2, 250000), 
+(3, 2, 1, 200000); 

@@ -4,8 +4,7 @@ require('dotenv').config();
 const authenticateUser = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-        
-        // Log để kiểm tra 
+
         console.log('--- AUTH DEBUG ---');
         console.log('Header:', authHeader);
 
@@ -14,20 +13,17 @@ const authenticateUser = (req, res, next) => {
         }
 
         const token = authHeader.split(' ')[1];
-        
-        //Kiểm tra xem JWT_SECRET có tồn tại không
+
         if (!process.env.JWT_SECRET) {
             console.error('❌ LỖI NGHIÊM TRỌNG: Chưa cấu hình JWT_SECRET trong file .env');
             return res.status(500).json({ success: false, message: 'Lỗi cấu hình server.' });
         }
 
-        // Giải mã token
+   
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Gắn thông tin vào request - QUAN TRỌNG: CẢ HAI CÁCH
         req.user = { userId: decoded.userId, role: decoded.role };
         req.userId = decoded.userId;
-        req.userRole = decoded.role; // <-- THÊM DÒNG NÀY
+        req.userRole = decoded.role; 
 
         console.log('✅ Xác thực thành công cho User ID:', decoded.userId, 'Role:', decoded.role);
         next();

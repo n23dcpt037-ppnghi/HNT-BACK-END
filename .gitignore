@@ -32,6 +32,5 @@ pids
 *.pid.lock
 
 # --- Optional: Các file backup DB  ---
-# Giữ lại file script tạo bảng (database_setup.sql), nhưng bỏ qua các file data lớn
 *.sql.gz
 *.sql.zip
