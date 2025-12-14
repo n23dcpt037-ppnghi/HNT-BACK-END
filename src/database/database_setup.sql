@@ -1,13 +1,8 @@
--- 1. TAO CO SO DU LIEU (DATABASE)
 CREATE DATABASE IF NOT EXISTS swimming_club_shop 
     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 2. CHON CO SO DU LIEU DE LAM VIEC
 USE swimming_club_shop;
 
--- 3. TAO CAC BANG (CHUA CO KHOA NGOAI)
-
--- Bang `users` (Nguoi dung)
 CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -18,7 +13,6 @@ CREATE TABLE users (
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user'
 );
 
--- Bang `products` (San pham)
 CREATE TABLE products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
@@ -29,7 +23,6 @@ CREATE TABLE products (
     image_url TEXT
 );
 
--- Bang `athletes` (Tuyen thu)
 CREATE TABLE athletes (
     athlete_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
@@ -38,7 +31,6 @@ CREATE TABLE athletes (
     image_url TEXT
 );
 
--- Bang `orders` (Don hang)
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -50,7 +42,6 @@ CREATE TABLE orders (
     shipping_phone VARCHAR(20) NOT NULL
 );
 
--- Bang `order_details` (Chi tiet don hang)
 CREATE TABLE order_details (
     order_detail_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -59,7 +50,6 @@ CREATE TABLE order_details (
     unit_price DECIMAL(10, 2) NOT NULL
 );
 
--- Bang `payments` (Thanh toan)
 CREATE TABLE payments (
     payment_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -69,7 +59,6 @@ CREATE TABLE payments (
     payment_status ENUM('pending', 'success', 'failed') NOT NULL DEFAULT 'pending'
 );
 
--- Bang `reviews` (Danh gia)
 CREATE TABLE reviews (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -78,8 +67,7 @@ CREATE TABLE reviews (
     comment TEXT,
     review_date DATE DEFAULT (CURRENT_DATE) NOT NULL
 );
-
--- Bang `cart_items` 
+ 
 CREATE TABLE cart_items (
     cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
