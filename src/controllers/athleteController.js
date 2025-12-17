@@ -100,8 +100,7 @@ const getAthleteById = async (req, res) => {
         const id = req.params.id;
         
         console.log(`📥 Yêu cầu chi tiết tuyển thủ ID: ${id}`);
-        
-        // Validate ID
+
         if (!id || isNaN(parseInt(id))) {
             return res.status(400).json({ 
                 message: "ID tuyển thủ không hợp lệ" 
@@ -138,7 +137,6 @@ const getAthleteById = async (req, res) => {
             year: award.year || new Date().getFullYear()
         }));
 
-        // Format dữ liệu
         const formattedAthlete = {
             athlete_id: athlete.athlete_id,
             full_name: athlete.full_name || 'Chưa có tên',
@@ -176,7 +174,10 @@ const createAthlete = async (req, res) => {
     try {
         const data = req.body;
 
-        // Validation
+        if (req.file) {
+            data.image_url = `http://localhost:3000/uploads/athletes/${req.file.filename}`;
+        }
+
         if (!data.full_name) {
             return res.status(400).json({ 
                 message: "Tên tuyển thủ là bắt buộc" 
@@ -209,14 +210,16 @@ const updateAthlete = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
 
-        // Validate ID
+        if (req.file) {
+            data.image_url = `http://localhost:3000/uploads/athletes/${req.file.filename}`;
+        }
+
         if (!id || isNaN(parseInt(id))) {
             return res.status(400).json({ 
                 message: "ID tuyển thủ không hợp lệ" 
             });
         }
 
-        // Kiểm tra tuyển thủ tồn tại
         const existingAthlete = await athleteModel.findById(id);
         if (!existingAthlete) {
             return res.status(404).json({ 
@@ -246,14 +249,12 @@ const deleteAthlete = async (req, res) => {
     try {
         const id = req.params.id;
 
-        // Validate ID
         if (!id || isNaN(parseInt(id))) {
             return res.status(400).json({ 
                 message: "ID tuyển thủ không hợp lệ" 
             });
         }
 
-        // Kiểm tra tuyển thủ tồn tại
         const existingAthlete = await athleteModel.findById(id);
         if (!existingAthlete) {
             return res.status(404).json({ 

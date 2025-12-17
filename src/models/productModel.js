@@ -1,16 +1,26 @@
 const db = require('../config/db');
 
-// READ: Lấy tất cả Sản phẩm có tồn kho > 0
 const findAll = async () => {
     try {
-        const [rows] = await db.query('SELECT product_id, product_name, price_vnd, stock, image_url, image_url_2, category FROM products WHERE stock > 0');
+        const [rows] = await db.query('SELECT product_id, product_name, price_vnd, stock, image_url, category, description FROM products WHERE stock > 0');
+
+        rows.forEach(product => {
+            if (product.image_url) {
+                if (product.image_url.startsWith('images/')) {
+                    product.image_url = `http://localhost:3000/sp_home/${product.image_url}`;
+                }
+                else if (!product.image_url.includes('://') && !product.image_url.includes('/')) {
+                    product.image_url = `http://localhost:3000/uploads/products/${product.image_url}`;
+                }
+            }
+        });
+        
         return rows;
     } catch (error) {
         throw error;
     }
 };
 
-// READ: Lấy chi tiết Sản phẩm theo ID
 const findById = async (id) => {
     try {
         const [rows] = await db.query('SELECT * FROM products WHERE product_id = ?', [id]);

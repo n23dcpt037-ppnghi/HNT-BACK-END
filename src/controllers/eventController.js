@@ -111,8 +111,7 @@ const getEventById = async (req, res) => {
         
         // Đảm bảo event_date là string YYYY-MM-DD
         event.event_date = ensureDateFormat(event.event_date);
-        
-        // Thêm thông tin định dạng thời gian
+
         event.display_date = formatDateForDisplay(event.event_date);
         event.display_time = formatTimeForDisplay(event.event_time);
         
@@ -136,14 +135,12 @@ const createEvent = async (req, res) => {
                 message: "Vui lòng cung cấp tiêu đề, ngày và địa điểm" 
             });
         }
-        
-        // Xử lý ảnh nếu có upload
+
         let image_url = null;
         if (req.file) {
-            image_url = `uploads/events/${req.file.filename}`;
-        }
-        
-        // Chuẩn bị dữ liệu cho model
+    image_url = `http://localhost:3000/uploads/events/${req.file.filename}`;
+}
+
         const eventData = {
             title,
             description: description || '',
@@ -189,16 +186,13 @@ const updateEvent = async (req, res) => {
                 message: "Không tìm thấy sự kiện để cập nhật" 
             });
         }
-        
-        // Chuẩn bị dữ liệu update
+
         const updateData = { ...req.body };
-        
-        // Xử lý ảnh mới nếu có upload
+ 
         if (req.file) {
-            updateData.image_url = `uploads/events/${req.file.filename}`;
+            updateData.image_url = `http://localhost:3000/uploads/events/${req.file.filename}`;
         }
-        
-        // Đảm bảo định dạng date
+
         if (updateData.event_date) {
             updateData.event_date = ensureDateFormat(updateData.event_date);
         }

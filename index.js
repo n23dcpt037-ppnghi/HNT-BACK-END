@@ -41,6 +41,9 @@ app.use('/sk', express.static(path.join(__dirname, 'sk')));
 app.use('/sp_home/images', express.static(path.join(__dirname, '../sp_home/images')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/sp_home/images', express.static(path.join(__dirname, '../sp_home/images')));
+app.use('/tuyenthu', express.static(path.join(__dirname, '../tuyenthu')));
+app.use('/uploads/athletes', express.static(path.join(__dirname, 'uploads/athletes')));
  
 const authRoutes = require('./src/routes/authRoutes');
 const productRoutes = require('./src/routes/productRoutes');
@@ -128,6 +131,44 @@ app.use('/api/cart', authenticateUser, cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/articles', articleRoutes);
+
+app.use((req, res, next) => {
+    res.status(404).json({
+        success: false,
+        message: `Không tìm thấy ${req.method} ${req.originalUrl}`
+    });
+});
+
+app.use((err, req, res, next) => {
+    console.error('❌ LỖI SERVER:', {
+        message: err.message,
+        stack: err.stack,
+        method: req.method,
+        url: req.originalUrl,
+        body: req.body,
+        params: req.params
+    });
+
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+            success: false,
+            message: 'Lỗi upload file: ' + err.message
+        });
+    }
+
+    if (err.status === 400) {
+        return res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+
+    res.status(500).json({
+        success: false,
+        message: 'Lỗi server nội bộ',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
 app.listen(PORT, () => {
     console.log(`Server đang chạy tại http://localhost:${PORT}`);

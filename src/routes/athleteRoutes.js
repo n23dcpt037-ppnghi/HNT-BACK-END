@@ -15,10 +15,10 @@ const db = mysql.createConnection({
     database: process.env.DB_NAME || 'swimming_club_shop'
 });
 
-// ========== CẤU HÌNH UPLOAD ẢNH ==========
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'tuyenthu/');
+        const uploadDir = path.join(__dirname, '../../uploads/athletes/');
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
@@ -36,7 +36,6 @@ router.get('/', athleteController.getAllAthletes);
 router.get('/:id', athleteController.getAthleteById); 
 
 // 2. ROUTES DÀNH CHO ADMIN (CREATE, UPDATE, DELETE)
-// Lấy danh sách tuyển thủ
 router.get('/', (req, res) => {
     const sql = 'SELECT * FROM athletes ORDER BY athlete_id DESC';
     db.query(sql, (err, results) => {
@@ -66,7 +65,6 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// 3. POST create new athlete
 router.post('/', authenticateUser, adminOnly, upload.single('image'), (req, res) => {
     try {
         console.log('Body:', req.body);
@@ -146,7 +144,6 @@ router.post('/', authenticateUser, adminOnly, upload.single('image'), (req, res)
     }
 });
 
-// 4. PUT update athlete - THÊM UPLOAD ẢNH
 router.put('/:id', authenticateUser, adminOnly, upload.single('image'), (req, res) => {
     try {
         const { id } = req.params;
@@ -232,8 +229,6 @@ router.put('/:id', authenticateUser, adminOnly, upload.single('image'), (req, re
     }
 });
 
-
-// 5. API Xóa tuyển thủ
 router.delete('/:id', authenticateUser, adminOnly, (req, res) => {
     const { id } = req.params;
     const sql = 'DELETE FROM athletes WHERE athlete_id = ?';

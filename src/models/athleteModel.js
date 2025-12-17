@@ -4,6 +4,19 @@ const db = require('../config/db');
 const findAll = async () => {
     try {
         const [rows] = await db.query('SELECT athlete_id, full_name, nickname, position, specialty, age, achievements, image_url, detail_link FROM athletes');
+        rows.forEach(athlete => {
+            if (athlete.image_url) {
+                if (athlete.image_url.startsWith('http://localhost:3000/')) {
+                }
+                else if (/^\d{13}-\d+\.(jpg|png|jpeg|gif)$/.test(athlete.image_url)) {
+                    athlete.image_url = `http://localhost:3000/uploads/athletes/${athlete.image_url}`;
+                }
+                else {
+                    athlete.image_url = `http://localhost:3000/tuyenthu/${athlete.image_url}`;
+                }
+            }
+        });
+        
         return rows;
     } catch (error) {
         throw error;
@@ -23,13 +36,25 @@ const findById = async (id) => {
             GROUP BY a.athlete_id`, 
             [id]
         );
+        
+        if (rows[0]) {
+            const athlete = rows[0];
+            if (athlete.image_url) {
+                if (athlete.image_url.startsWith('http://localhost:3000/')) {
+                } else if (/^\d{13}-\d+\.(jpg|png|jpeg|gif)$/.test(athlete.image_url)) {
+                    athlete.image_url = `http://localhost:3000/uploads/athletes/${athlete.image_url}`;
+                } else {
+                    athlete.image_url = `http://localhost:3000/tuyenthu/${athlete.image_url}`;
+                }
+            }
+        }
+        
         return rows[0];
     } catch (error) {
         throw error;
     }
 };
 
-// Thêm hàm lấy lịch sử thi đấu
 const getCompetitionHistory = async (athleteId) => {
     try {
         const [rows] = await db.query(
@@ -40,7 +65,6 @@ const getCompetitionHistory = async (athleteId) => {
         );
         return rows;
     } catch (error) {
-        // Nếu bảng chưa tồn tại, trả về mảng rỗng
         console.warn('Bảng competition_history chưa tồn tại');
         return [];
     }
@@ -73,12 +97,10 @@ const createAthlete = async (data) => {
 // UPDATE: Cập nhật Tuyển thủ (Admin)
 const updateAthlete = async (id, data) => {
     try {
-        // 1. Lấy thông tin cũ trước
         const [rows] = await db.query('SELECT * FROM athletes WHERE athlete_id = ?', [id]);
         if (rows.length === 0) return 0;
         const oldData = rows[0];
 
-        // 2. Gộp dữ liệu mới và cũ 
         const full_name = data.full_name || oldData.full_name;
         const nickname = data.nickname || oldData.nickname;
         const position = data.position || oldData.position;
@@ -88,7 +110,6 @@ const updateAthlete = async (id, data) => {
         const image_url = data.image_url || oldData.image_url;
         const detail_link = data.detail_link || oldData.detail_link;
 
-        // 3. Thực hiện Update
         const [result] = await db.query(
             `UPDATE athletes 
             SET full_name = ?, nickname = ?, position = ?, specialty = ?, age = ?, 
@@ -102,7 +123,6 @@ const updateAthlete = async (id, data) => {
     }
 };
 
-// DELETE: Xóa Tuyển thủ (Admin)
 const deleteAthlete = async (id) => {
     try {
         const [result] = await db.query('DELETE FROM athletes WHERE athlete_id = ?', [id]);

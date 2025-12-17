@@ -59,10 +59,10 @@ const createArticle = async (req, res) => {
         
         if (req.files) {
             if (req.files.image && req.files.image[0]) {
-                image_url = `articles/${req.files.image[0].filename}`;
+                image_url = `http://localhost:3000/uploads/articles/${req.files.image[0].filename}`;
             }
             if (req.files.content_file && req.files.content_file[0]) {
-                file_url = `articles/${req.files.content_file[0].filename}`;
+                file_url = `http://localhost:3000/uploads/articles/${req.files.content_file[0].filename}`;
             }
         }
 
@@ -139,10 +139,10 @@ const updateArticle = async (req, res) => {
         
         if (req.files) {
             if (req.files.image && req.files.image[0]) {
-                image_url = `articles/${req.files.image[0].filename}`;
+                image_url = `http://localhost:3000/uploads/articles/${req.files.image[0].filename}`;
             }
             if (req.files.content_file && req.files.content_file[0]) {
-                file_url = `articles/${req.files.content_file[0].filename}`;
+                file_url = `http://localhost:3000/uploads/articles/${req.files.content_file[0].filename}`;
             }
         }
 
